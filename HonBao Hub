@@ -1,36 +1,37 @@
-_G.AutoFarm = true  -- Bật/tắt Auto Farm (true = bật, false = tắt)
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
-local function getNearestMob()
-    local closest, distance = nil, math.huge
-    for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
-        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-            local mag = (mob.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude
-            if mag < distance then
-                closest, distance = mob, mag
+function getNearestEnemy()
+    local nearestEnemy = nil
+    local minDistance = math.huge
+
+    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            local distance = (humanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+            if distance < minDistance then
+                minDistance = distance
+                nearestEnemy = v
             end
         end
     end
-    return closest
+    return nearestEnemy
 end
 
-local function attackMob(mob)
-    repeat
-        if mob and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5) -- Di chuyển đến quái
-            wait(0.2)
-            game:GetService("VirtualUser"):CaptureController()
-            game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0)) -- Tấn công
-        end
+while wait(0.3) do
+    local enemy = getNearestEnemy()
+    
+    if enemy then
+        -- Dịch chuyển đến sát quái
+        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+        
+        -- Auto đánh thường (click chuột)
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+        
+        -- Auto dùng skill Z (Bức Phá)
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, game)
         wait(0.1)
-    until not _G.AutoFarm or mob.Humanoid.Health <= 0
-end
-
-spawn(function()
-    while _G.AutoFarm do
-        local mob = getNearestMob()
-        if mob then
-            attackMob(mob)
-        end
-        wait(0.5) -- Giảm lag
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, game)
     end
-end)
+end
