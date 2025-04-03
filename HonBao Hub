@@ -1,0 +1,36 @@
+_G.AutoFarm = true  -- Bật/tắt Auto Farm (true = bật, false = tắt)
+
+local function getNearestMob()
+    local closest, distance = nil, math.huge
+    for _, mob in pairs(game.Workspace.Enemies:GetChildren()) do
+        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+            local mag = (mob.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).magnitude
+            if mag < distance then
+                closest, distance = mob, mag
+            end
+        end
+    end
+    return closest
+end
+
+local function attackMob(mob)
+    repeat
+        if mob and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5) -- Di chuyển đến quái
+            wait(0.2)
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0)) -- Tấn công
+        end
+        wait(0.1)
+    until not _G.AutoFarm or mob.Humanoid.Health <= 0
+end
+
+spawn(function()
+    while _G.AutoFarm do
+        local mob = getNearestMob()
+        if mob then
+            attackMob(mob)
+        end
+        wait(0.5) -- Giảm lag
+    end
+end)
