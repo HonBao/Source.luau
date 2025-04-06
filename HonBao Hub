@@ -25,9 +25,9 @@ MainFrame.Parent = ScreenGui
 
 -- Cài đặt nút "Hon"
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
-ToggleButton.Text = "Hon"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Nền đen đậm
+ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Chữ màu đỏ
+ToggleButton.Text = "HON"
 ToggleButton.Parent = MainFrame
 
 -- Cho phép kéo nút
