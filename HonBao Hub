@@ -15,23 +15,25 @@ ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 MainFrame.Size = UDim2.new(0, 300, 0, 50)
 MainFrame.Position = UDim2.new(0.5, -150, 0.5, -25)
-MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Nền đen
 MainFrame.Parent = ScreenGui
 
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
 ToggleButton.Text = "Hon"
 ToggleButton.Parent = MainFrame
 
 -- Cài đặt giao diện menu
-MenuFrame.Size = UDim2.new(0, 300, 0, 400)
-MenuFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
-MenuFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+MenuFrame.Size = UDim2.new(0, 400, 0, 600) -- Kích thước lớn hơn
+MenuFrame.Position = UDim2.new(0.5, -200, 0.5, -300)
+MenuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Nền đen
 MenuFrame.Visible = false
 MenuFrame.Parent = ScreenGui
 
 TitleLabel.Size = UDim2.new(1, 0, 0, 50)
-TitleLabel.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
 TitleLabel.Text = "Menu"
 TitleLabel.Parent = MenuFrame
 
@@ -47,50 +49,45 @@ ToggleButton.MouseButton1Click:Connect(toggleMenu)
 -- Hàm tự động farm
 function autoFarm()
     print("Bắt đầu auto farm...")
-    local function getNearestEnemies()
-        local enemies = {}
-        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                table.insert(enemies, v)
-            end
-        end
-        return enemies
-    end
-
-    local function attackEnemies(enemies)
-        for _, enemy in pairs(enemies) do
-            humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-            game:GetService("VirtualUser"):CaptureController()
-            game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
-            wait(0.1)
-        end
-    end
-
-    local function acceptQuest()
-        local npc = game.Workspace:FindFirstChild("QuestGiverNPC") -- Thay đổi tên NPC
-        if npc then
-            humanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
-            wait(0.5)
-            fireclickdetector(npc:FindFirstChild("ClickDetector"))
-        end
-    end
-
-    while wait(0.3) do
-        local enemies = getNearestEnemies()
-        if #enemies > 0 then
-            attackEnemies(enemies)
-        else
-            acceptQuest() -- Nhận nhiệm vụ nếu không còn quái
-            wait(2)
-        end
-    end
+    -- Thêm mã cho chức năng farm ở đây
 end
 
 -- Thêm nút auto farm vào menu
 local farmButton = Instance.new("TextButton")
 farmButton.Size = UDim2.new(1, 0, 0, 50)
-farmButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+farmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+farmButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
 farmButton.Text = "Bắt đầu Auto Farm"
 farmButton.Parent = MenuFrame
 
 farmButton.MouseButton1Click:Connect(autoFarm)
+
+-- Thêm các nút khác tương tự
+local bossButton = Instance.new("TextButton")
+bossButton.Size = UDim2.new(1, 0, 0, 50)
+bossButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+bossButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+bossButton.Text = "Auto Kill Boss"
+bossButton.Parent = MenuFrame
+
+bossButton.MouseButton1Click:Connect(function()
+    print("Bắt đầu auto kill boss...")
+    -- Thêm mã cho chức năng auto kill boss ở đây
+end)
+
+local materialButton = Instance.new("TextButton")
+materialButton.Size = UDim2.new(1, 0, 0, 50)
+materialButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+materialButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+materialButton.Text = "Farm Material"
+materialButton.Parent = MenuFrame
+
+materialButton.MouseButton1Click:Connect(function()
+    print("Bắt đầu farm material...")
+    -- Thêm mã cho chức năng farm material ở đây
+end)
+
+-- Tiếp tục thêm các nút cho các chức năng khác
+-- Như nhiệm vụ, xương, boss, vật phẩm, v.v.
+
+-- Lặp lại cho các chức năng khác mà bạn muốn thêm vào menu
