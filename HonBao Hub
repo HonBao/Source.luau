@@ -4,93 +4,93 @@ local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 local humanoid = character:FindFirstChildOfClass("Humanoid")
 
 local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local TabFarm = Instance.new("TextButton")
-local TabVolcano = Instance.new("TextButton")
+local MainFrame = Instance.new("Frame")
+local ToggleButton = Instance.new("TextButton")
+local MenuFrame = Instance.new("Frame")
 local UIListLayout = Instance.new("UIListLayout")
+local TitleLabel = Instance.new("TextLabel")
 
+-- Cài đặt giao diện chính
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-Frame.Size = UDim2.new(0, 300, 0, 400)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
-Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Frame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 300, 0, 50)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -25)
+MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.Parent = ScreenGui
 
-TabFarm.Size = UDim2.new(1, 0, 0, 50)
-TabFarm.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-TabFarm.Text = "Farm"
-TabFarm.Parent = Frame
+ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+ToggleButton.Text = "Hon"
+ToggleButton.Parent = MainFrame
 
-TabVolcano.Size = UDim2.new(1, 0, 0, 50)
-TabVolcano.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-TabVolcano.Text = "Volcano"
-TabVolcano.Position = UDim2.new(0, 0, 0, 50)
-TabVolcano.Parent = Frame
+-- Cài đặt giao diện menu
+MenuFrame.Size = UDim2.new(0, 300, 0, 400)
+MenuFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MenuFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+MenuFrame.Visible = false
+MenuFrame.Parent = ScreenGui
 
-UIListLayout.Parent = Frame
+TitleLabel.Size = UDim2.new(1, 0, 0, 50)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+TitleLabel.Text = "Menu"
+TitleLabel.Parent = MenuFrame
 
-local function getNearestEnemies()
-    local enemies = {}
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            table.insert(enemies, v)
+-- Cài đặt danh sách nút
+UIListLayout.Parent = MenuFrame
+
+local function toggleMenu()
+    MenuFrame.Visible = not MenuFrame.Visible
+end
+
+ToggleButton.MouseButton1Click:Connect(toggleMenu)
+
+-- Hàm tự động farm
+function autoFarm()
+    print("Bắt đầu auto farm...")
+    local function getNearestEnemies()
+        local enemies = {}
+        for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                table.insert(enemies, v)
+            end
+        end
+        return enemies
+    end
+
+    local function attackEnemies(enemies)
+        for _, enemy in pairs(enemies) do
+            humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
+            wait(0.1)
         end
     end
-    return enemies
-end
 
-local function attackEnemies(enemies)
-    for _, enemy in pairs(enemies) do
-        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-        
-        -- Tự động đánh thường
-        game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
-        wait(0.1) -- Thay đổi thời gian nếu cần
+    local function acceptQuest()
+        local npc = game.Workspace:FindFirstChild("QuestGiverNPC") -- Thay đổi tên NPC
+        if npc then
+            humanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
+            wait(0.5)
+            fireclickdetector(npc:FindFirstChild("ClickDetector"))
+        end
     end
-end
 
-local function acceptQuest()
-    local npc = game.Workspace:FindFirstChild("QuestGiverNPC") -- Thay đổi tên NPC
-    if npc then
-        humanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
-        wait(0.5)
-        fireclickdetector(npc:FindFirstChild("ClickDetector"))
-    end
-end
-
-local function autoFarm()
     while wait(0.3) do
         local enemies = getNearestEnemies()
-        
         if #enemies > 0 then
             attackEnemies(enemies)
         else
             acceptQuest() -- Nhận nhiệm vụ nếu không còn quái
-            wait(2) -- Chờ trước khi kiểm tra lại
+            wait(2)
         end
     end
 end
 
-local function autoVolcano()
-    -- Thêm mã cho tự động tìm đảo tiền sử và tiêu diệt Golem
-    print("Đang vào tab Volcano...")
-    -- Thêm mã cho các chức năng tại đây
-end
+-- Thêm nút auto farm vào menu
+local farmButton = Instance.new("TextButton")
+farmButton.Size = UDim2.new(1, 0, 0, 50)
+farmButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+farmButton.Text = "Bắt đầu Auto Farm"
+farmButton.Parent = MenuFrame
 
-local function showTab(tabName)
-    if tabName == "Farm" then
-        print("Đang vào tab Farm...")
-        autoFarm()
-    elseif tabName == "Volcano" then
-        autoVolcano()
-    end
-end
-
-TabFarm.MouseButton1Click:Connect(function()
-    showTab("Farm")
-end)
-
-TabVolcano.MouseButton1Click:Connect(function()
-    showTab("Volcano")
-end)
+farmButton.MouseButton1Click:Connect(autoFarm)
