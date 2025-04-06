@@ -1,76 +1,87 @@
--- Tạo GUI
+-- GUI
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local ScreenGui = Instance.new("ScreenGui")
-local HonButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-
+local ScreenGui = Instance.new("ScreenGui", playerGui)
 ScreenGui.Name = "HonFarmGUI"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = playerGui
 
-HonButton.Name = "HonButton"
-HonButton.Parent = ScreenGui
-HonButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- nền đen đậm
+local HonButton = Instance.new("TextButton", ScreenGui)
+HonButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 HonButton.BorderSizePixel = 0
-HonButton.Position = UDim2.new(0, 10, 0, 200) -- góc trái
-HonButton.Size = UDim2.new(0, 50, 0, 50) -- nhỏ gọn
+HonButton.Position = UDim2.new(0, 10, 0, 200)
+HonButton.Size = UDim2.new(0, 50, 0, 50)
 HonButton.Font = Enum.Font.SourceSansBold
 HonButton.Text = "HON"
 HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
 HonButton.TextScaled = true
 HonButton.AutoButtonColor = false
 
+local UICorner = Instance.new("UICorner", HonButton)
 UICorner.CornerRadius = UDim.new(1, 0)
-UICorner.Parent = HonButton
 
--- Biến bật/tắt auto farm
+-- Auto Farm Toggle
 local autoFarm = false
 
--- Auto Farm đánh thường
-task.spawn(function()
-    while true do
-        task.wait(0.3)
-        if autoFarm then
-            local character = player.Character
-            if not character then continue end
-            local root = character:FindFirstChild("HumanoidRootPart")
-            if not root then continue end
-
-            -- Tìm quái gần nhất
-            local nearestEnemy = nil
-            local minDistance = math.huge
-            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    local dist = (root.Position - v.HumanoidRootPart.Position).Magnitude
-                    if dist < minDistance then
-                        minDistance = dist
-                        nearestEnemy = v
-                    end
-                end
-            end
-
-            -- Di chuyển và đánh
-            if nearestEnemy then
-                root.CFrame = nearestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-
-                -- Đánh thường (click chuột)
-                game:GetService("VirtualUser"):CaptureController()
-                game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
-            end
-        end
-    end
+HonButton.MouseButton1Click:Connect(function()
+	autoFarm = not autoFarm
+	if autoFarm then
+		HonButton.Text = "ON"
+		HonButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+	else
+		HonButton.Text = "HON"
+		HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+	end
 end)
 
--- Bấm nút bật/tắt
-HonButton.MouseButton1Click:Connect(function()
-    autoFarm = not autoFarm
-    if autoFarm then
-        HonButton.Text = "ON"
-        HonButton.TextColor3 = Color3.fromRGB(0, 255, 0)
-    else
-        HonButton.Text = "HON"
-        HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-    end
+-- Đánh thường bằng Melee (gọi combat remote)
+local function attackTarget(target)
+	local Combat = require(game.Players.LocalPlayer.PlayerScripts.CombatFramework)
+	local rigController = Combat.activeController
+	if rigController and rigController.equipped then
+		local blade = rigController.blades[1]
+		if blade then
+			for i = 1, 1 do
+				local args = {
+					[1] = target,
+					[2] = true
+				}
+				rigController.active = true
+				game:GetService("ReplicatedStorage").RigControllerEvent:FireServer(unpack(args))
+			end
+		end
+	end
+end
+
+-- Auto Farm Loop
+task.spawn(function()
+	while task.wait(0.3) do
+		if autoFarm then
+			local char = player.Character
+			if not char then continue end
+			local root = char:FindFirstChild("HumanoidRootPart")
+			if not root then continue end
+
+			-- Tìm quái gần nhất
+			local nearestEnemy = nil
+			local minDist = math.huge
+			for _, v in pairs(workspace.Enemies:GetChildren()) do
+				if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+					local dist = (root.Position - v.HumanoidRootPart.Position).Magnitude
+					if dist < minDist then
+						minDist = dist
+						nearestEnemy = v
+					end
+				end
+			end
+
+			-- Đến và đánh
+			if nearestEnemy then
+				pcall(function()
+					root.CFrame = nearestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+					attackTarget(nearestEnemy)
+				end)
+			end
+		end
+	end
 end)
