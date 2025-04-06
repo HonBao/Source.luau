@@ -134,6 +134,14 @@ function autoBoss()
     end
 end
 
+-- Hàm bật/tắt menu
+local function toggleMenu()
+    MenuFrame.Visible = not MenuFrame.Visible
+end
+
+-- Gán hàm bật/tắt menu cho nút "HON"
+ToggleButton.MouseButton1Click:Connect(toggleMenu)
+
 -- Thêm nút "Auto lên cấp" vào cột Auto
 local levelButton = Instance.new("TextButton")
 levelButton.Size = UDim2.new(1, 0, 0, 50)
