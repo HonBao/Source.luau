@@ -1,68 +1,37 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local ToggleButton = Instance.new("TextButton")
+function getNearestEnemy()
+    local nearestEnemy = nil
+    local minDistance = math.huge
 
--- Cài đặt giao diện chính
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
--- Cài đặt khung chính cho nút "Hon"
-MainFrame.Size = UDim2.new(0, 50, 0, 50) -- Kích thước nhỏ gọn
-MainFrame.Position = UDim2.new(0, 10, 0, 10) -- Vị trí ở góc trái
-MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Nền đen
-MainFrame.Parent = ScreenGui
-
--- Cài đặt nút "Hon"
-ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Nền đen đậm
-ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Chữ màu đỏ
-ToggleButton.Text = "HON"
-ToggleButton.Parent = MainFrame
-
-local autoFarmEnabled = false
-
--- Hàm tìm quái gần nhất
-local function getNearestEnemies()
-    local enemies = {}
     for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
         if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            table.insert(enemies, v)
+            local distance = (humanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+            if distance < minDistance then
+                minDistance = distance
+                nearestEnemy = v
+            end
         end
     end
-    return enemies
+    return nearestEnemy
 end
 
--- Hàm tấn công quái
-local function attackEnemies()
-    local enemies = getNearestEnemies()
-    for _, enemy in pairs(enemies) do
-        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2) -- Tiến gần quái
-        humanoid:ChangeState(Enum.HumanoidStateType.Physics) -- Để không nhảy liên tục
-        wait(0.1) -- Tăng tốc độ tấn công
-        -- Kích hoạt đòn tấn công melee
-        -- Thêm mã để gọi kỹ năng melee tại đây (nếu cần)
+while wait(0.3) do
+    local enemy = getNearestEnemy()
+    
+    if enemy then
+        -- Dịch chuyển đến sát quái
+        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+        
+        -- Auto đánh thường (click chuột)
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+        
+        -- Auto dùng skill Z (Bức Phá)
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, game)
+        wait(0.1)
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, game)
     end
 end
-
--- Hàm tự động farm
-function autoFarm()
-    while autoFarmEnabled do
-        attackEnemies()
-        wait(0.3)
-    end
-end
-
--- Gán sự kiện cho nút "HON"
-ToggleButton.MouseButton1Click:Connect(function()
-    autoFarmEnabled = not autoFarmEnabled
-    if autoFarmEnabled then
-        ToggleButton.Text = "HON: ON" -- Thay đổi văn bản để hiển thị trạng thái bật
-        autoFarm() -- Gọi hàm auto farm
-    else
-        ToggleButton.Text = "HON" -- Đặt lại văn bản khi tắt
-    end
-end)
