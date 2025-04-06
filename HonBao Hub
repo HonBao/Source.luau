@@ -6,13 +6,6 @@ local humanoid = character:FindFirstChildOfClass("Humanoid")
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local ToggleButton = Instance.new("TextButton")
-local MenuFrame = Instance.new("Frame")
-local UIListLayout = Instance.new("UIListLayout")
-local TitleLabel = Instance.new("TextLabel")
-local FarmColumn = Instance.new("Frame")
-local AutoColumn = Instance.new("Frame")
-local FarmLayout = Instance.new("UIListLayout")
-local AutoLayout = Instance.new("UIListLayout")
 
 -- Cài đặt giao diện chính
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
@@ -30,186 +23,45 @@ ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Chữ màu đỏ
 ToggleButton.Text = "HON"
 ToggleButton.Parent = MainFrame
 
--- Cho phép kéo nút
-local dragging
-local dragInput
-local dragStart
-local startPos
+local autoFarmEnabled = false
 
-ToggleButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-ToggleButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+-- Hàm tìm quái gần nhất
+local function getNearestEnemies()
+    local enemies = {}
+    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            table.insert(enemies, v)
         end
     end
-end)
+    return enemies
+end
 
--- Cài đặt giao diện menu
-MenuFrame.Size = UDim2.new(0, 400, 0, 600) -- Kích thước lớn hơn
-MenuFrame.Position = UDim2.new(0.5, -200, 0.5, -300)
-MenuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Nền đen
-MenuFrame.Visible = false
-MenuFrame.Parent = ScreenGui
-
-TitleLabel.Size = UDim2.new(1, 0, 0, 50)
-TitleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
-TitleLabel.Text = "Menu"
-TitleLabel.Parent = MenuFrame
-
--- Cột Farm
-FarmColumn.Size = UDim2.new(0.5, 0, 1, 0)
-FarmColumn.Position = UDim2.new(0, 0, 0, 50)
-FarmColumn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-FarmColumn.Parent = MenuFrame
-
--- Cột Auto
-AutoColumn.Size = UDim2.new(0.5, 0, 1, 0)
-AutoColumn.Position = UDim2.new(0.5, 0, 0, 50)
-AutoColumn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-AutoColumn.Parent = MenuFrame
-
--- Cài đặt danh sách cho cột Farm
-FarmLayout.Parent = FarmColumn
-FarmLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Cài đặt danh sách cho cột Auto
-AutoLayout.Parent = AutoColumn
-AutoLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Biến để kiểm soát trạng thái
-local autoFarmEnabled = false
-local autoLevelEnabled = false
-local autoLootEnabled = false
-local autoBossEnabled = false
+-- Hàm tấn công quái
+local function attackEnemies()
+    local enemies = getNearestEnemies()
+    for _, enemy in pairs(enemies) do
+        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+        -- Kích hoạt đòn tấn công melee
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping) -- Đảm bảo nhân vật có thể đánh
+        wait(0.1) -- Tốc độ tấn công
+    end
+end
 
 -- Hàm tự động farm
 function autoFarm()
     while autoFarmEnabled do
         wait(0.3)
-        -- Thêm mã cho chức năng farm kẻ địch gần
-        print("Đang farm kẻ địch gần...")
+        attackEnemies()
     end
 end
 
--- Hàm tự động lên cấp
-function autoLevel()
-    while autoLevelEnabled do
-        wait(0.3)
-        -- Thêm mã cho chức năng auto lên cấp
-        print("Đang auto lên cấp...")
-    end
-end
-
--- Hàm tự động nhặt rương
-function autoLoot()
-    while autoLootEnabled do
-        wait(0.3)
-        -- Thêm mã cho chức năng auto nhặt rương
-        print("Đang auto nhặt rương...")
-    end
-end
-
--- Hàm tự động farm boss
-function autoBoss()
-    while autoBossEnabled do
-        wait(0.3)
-        -- Thêm mã cho chức năng farm tất cả boss
-        print("Đang farm tất cả boss...")
-    end
-end
-
--- Hàm bật/tắt menu
-local function toggleMenu()
-    MenuFrame.Visible = not MenuFrame.Visible
-end
-
--- Gán hàm bật/tắt menu cho nút "HON"
-ToggleButton.MouseButton1Click:Connect(toggleMenu)
-
--- Thêm nút "Auto lên cấp" vào cột Auto
-local levelButton = Instance.new("TextButton")
-levelButton.Size = UDim2.new(1, 0, 0, 50)
-levelButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-levelButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-levelButton.Text = "Toggle Auto Lên Cấp"
-levelButton.Parent = AutoColumn
-
-levelButton.MouseButton1Click:Connect(function()
-    autoLevelEnabled = not autoLevelEnabled
-    if autoLevelEnabled then
-        levelButton.Text = "Auto Lên Cấp: ON"
-        autoLevel() -- Gọi hàm auto lên cấp
-    else
-        levelButton.Text = "Toggle Auto Lên Cấp"
-    end
-end)
-
--- Thêm nút "Farm kẻ địch gần" vào cột Farm
-local farmButton = Instance.new("TextButton")
-farmButton.Size = UDim2.new(1, 0, 0, 50)
-farmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-farmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-farmButton.Text = "Toggle Farm Kẻ Địch Gần"
-farmButton.Parent = FarmColumn
-
-farmButton.MouseButton1Click:Connect(function()
+-- Gán sự kiện cho nút "HON"
+ToggleButton.MouseButton1Click:Connect(function()
     autoFarmEnabled = not autoFarmEnabled
     if autoFarmEnabled then
-        farmButton.Text = "Farm Kẻ Địch Gần: ON"
+        ToggleButton.Text = "HON: ON" -- Thay đổi văn bản để hiển thị trạng thái bật
         autoFarm() -- Gọi hàm auto farm
     else
-        farmButton.Text = "Toggle Farm Kẻ Địch Gần"
-    end
-end)
-
--- Thêm nút "Auto nhặt rương" vào cột Auto
-local lootButton = Instance.new("TextButton")
-lootButton.Size = UDim2.new(1, 0, 0, 50)
-lootButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-lootButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-lootButton.Text = "Toggle Auto Nhặt Rương"
-lootButton.Parent = AutoColumn
-
-lootButton.MouseButton1Click:Connect(function()
-    autoLootEnabled = not autoLootEnabled
-    if autoLootEnabled then
-        lootButton.Text = "Auto Nhặt Rương: ON"
-        autoLoot() -- Gọi hàm auto nhặt rương
-    else
-        lootButton.Text = "Toggle Auto Nhặt Rương"
-    end
-end)
-
--- Thêm nút "Farm tất cả boss" vào cột Auto
-local bossButton = Instance.new("TextButton")
-bossButton.Size = UDim2.new(1, 0, 0, 50)
-bossButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-bossButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-bossButton.Text = "Toggle Farm Tất Cả Boss"
-bossButton.Parent = AutoColumn
-
-bossButton.MouseButton1Click:Connect(function()
-    autoBossEnabled = not autoBossEnabled
-    if autoBossEnabled then
-        bossButton.Text = "Farm Tất Cả Boss: ON"
-        autoBoss() -- Gọi hàm farm boss
-    else
-        bossButton.Text = "Toggle Farm Tất Cả Boss"
+        ToggleButton.Text = "HON" -- Đặt lại văn bản khi tắt
     end
 end)
