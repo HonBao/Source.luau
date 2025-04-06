@@ -41,8 +41,10 @@ local function attackEnemies()
     local enemies = getNearestEnemies()
     for _, enemy in pairs(enemies) do
         humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2) -- Tiến gần quái
-        humanoid:ChangeState(Enum.HumanoidStateType.Jumping) -- Kích hoạt đòn tấn công melee
-        wait(0.05) -- Tăng tốc độ tấn công
+        humanoid:ChangeState(Enum.HumanoidStateType.Physics) -- Để không nhảy liên tục
+        wait(0.1) -- Tăng tốc độ tấn công
+        -- Kích hoạt đòn tấn công melee
+        -- Thêm mã để gọi kỹ năng melee tại đây (nếu cần)
     end
 end
 
