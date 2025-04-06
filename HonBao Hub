@@ -1,37 +1,80 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+-- Tạo GUI
+local ScreenGui = Instance.new("ScreenGui")
+local HonButton = Instance.new("TextButton")
 
-function getNearestEnemy()
-    local nearestEnemy = nil
-    local minDistance = math.huge
+ScreenGui.Name = "HonFarmGUI"
+ScreenGui.Parent = game.CoreGui
 
-    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
-        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (humanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
-            if distance < minDistance then
-                minDistance = distance
-                nearestEnemy = v
+HonButton.Name = "HonButton"
+HonButton.Parent = ScreenGui
+HonButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10) -- nền đen đậm
+HonButton.BorderSizePixel = 0
+HonButton.Position = UDim2.new(0, 20, 0, 200)
+HonButton.Size = UDim2.new(0, 80, 0, 80)
+HonButton.Font = Enum.Font.SourceSansBold
+HonButton.Text = "HON"
+HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+HonButton.TextScaled = true
+HonButton.ClipsDescendants = true
+HonButton.AutoButtonColor = false
+HonButton.BackgroundTransparency = 0
+HonButton.ZIndex = 10
+HonButton.TextStrokeTransparency = 0
+
+-- Làm tròn nút
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = HonButton
+
+-- Biến điều khiển auto farm
+local autoFarm = false
+
+-- Auto Farm logic
+spawn(function()
+    while true do
+        wait(0.3)
+        if autoFarm then
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoidRootPart then continue end
+
+            local nearestEnemy = nil
+            local minDistance = math.huge
+            for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                    local distance = (humanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
+                    if distance < minDistance then
+                        minDistance = distance
+                        nearestEnemy = v
+                    end
+                end
+            end
+
+            if nearestEnemy then
+                humanoidRootPart.CFrame = nearestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+
+                -- Click chuột
+                game:GetService("VirtualUser"):CaptureController()
+                game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+
+                -- Skill Z
+                game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, game)
+                wait(0.1)
+                game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, game)
             end
         end
     end
-    return nearestEnemy
-end
+end)
 
-while wait(0.3) do
-    local enemy = getNearestEnemy()
-    
-    if enemy then
-        -- Dịch chuyển đến sát quái
-        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-        
-        -- Auto đánh thường (click chuột)
-        game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        
-        -- Auto dùng skill Z (Bức Phá)
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, game)
-        wait(0.1)
-        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, game)
+-- Xử lý bật/tắt khi nhấn nút
+HonButton.MouseButton1Click:Connect(function()
+    autoFarm = not autoFarm
+    if autoFarm then
+        HonButton.Text = "ON"
+        HonButton.TextColor3 = Color3.fromRGB(0, 255, 0) -- xanh khi bật
+    else
+        HonButton.Text = "HON"
+        HonButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- đỏ khi tắt
     end
-end
+end)
