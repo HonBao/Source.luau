@@ -50,8 +50,10 @@ end
 -- Hàm tự động farm
 function autoFarm()
     while autoFarmEnabled do
-        wait(0.3)
+        -- Giữ nhân vật ở độ cao nhất định
+        humanoidRootPart.Position = humanoidRootPart.Position + Vector3.new(0, flyingHeight, 0)
         attackEnemies()
+        wait(0.3)
     end
 end
 
