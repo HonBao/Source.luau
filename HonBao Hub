@@ -46,10 +46,54 @@ end
 
 ToggleButton.MouseButton1Click:Connect(toggleMenu)
 
+-- Biến để kiểm soát trạng thái
+local autoFarmEnabled = false
+local autoKillBossEnabled = false
+local farmMaterialEnabled = false
+
+-- Hàm tìm quái gần nhất
+local function getNearestEnemies()
+    local enemies = {}
+    for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            table.insert(enemies, v)
+        end
+    end
+    return enemies
+end
+
+-- Hàm tấn công quái
+local function attackEnemies(enemies)
+    for _, enemy in pairs(enemies) do
+        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
+        wait(0.1) -- Thay đổi nếu cần
+    end
+end
+
+-- Hàm nhận nhiệm vụ
+local function acceptQuest()
+    local npc = game.Workspace:FindFirstChild("QuestGiverNPC") -- Thay đổi tên NPC
+    if npc then
+        humanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
+        wait(0.5)
+        fireclickdetector(npc:FindFirstChild("ClickDetector"))
+    end
+end
+
 -- Hàm tự động farm
 function autoFarm()
-    print("Bắt đầu auto farm...")
-    -- Thêm mã cho chức năng farm ở đây
+    while autoFarmEnabled do
+        wait(0.3)
+        local enemies = getNearestEnemies()
+        if #enemies > 0 then
+            attackEnemies(enemies)
+        else
+            acceptQuest() -- Nhận nhiệm vụ nếu không còn quái
+            wait(2) -- Chờ trước khi kiểm tra lại
+        end
+    end
 end
 
 -- Thêm nút auto farm vào menu
@@ -57,37 +101,51 @@ local farmButton = Instance.new("TextButton")
 farmButton.Size = UDim2.new(1, 0, 0, 50)
 farmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 farmButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
-farmButton.Text = "Bắt đầu Auto Farm"
+farmButton.Text = "Toggle Auto Farm"
 farmButton.Parent = MenuFrame
 
-farmButton.MouseButton1Click:Connect(autoFarm)
+farmButton.MouseButton1Click:Connect(function()
+    autoFarmEnabled = not autoFarmEnabled
+    if autoFarmEnabled then
+        farmButton.Text = "Auto Farm: ON"
+        autoFarm() -- Gọi hàm auto farm
+    else
+        farmButton.Text = "Toggle Auto Farm"
+    end
+end)
 
--- Thêm các nút khác tương tự
+-- Thêm nút auto kill boss vào menu
 local bossButton = Instance.new("TextButton")
 bossButton.Size = UDim2.new(1, 0, 0, 50)
 bossButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 bossButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-bossButton.Text = "Auto Kill Boss"
+bossButton.Text = "Toggle Auto Kill Boss"
 bossButton.Parent = MenuFrame
 
 bossButton.MouseButton1Click:Connect(function()
-    print("Bắt đầu auto kill boss...")
-    -- Thêm mã cho chức năng auto kill boss ở đây
+    autoKillBossEnabled = not autoKillBossEnabled
+    if autoKillBossEnabled then
+        bossButton.Text = "Auto Kill Boss: ON"
+        -- Thêm mã cho chức năng auto kill boss ở đây
+    else
+        bossButton.Text = "Toggle Auto Kill Boss"
+    end
 end)
 
+-- Thêm nút farm material vào menu
 local materialButton = Instance.new("TextButton")
 materialButton.Size = UDim2.new(1, 0, 0, 50)
 materialButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 materialButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-materialButton.Text = "Farm Material"
+materialButton.Text = "Toggle Farm Material"
 materialButton.Parent = MenuFrame
 
 materialButton.MouseButton1Click:Connect(function()
-    print("Bắt đầu farm material...")
-    -- Thêm mã cho chức năng farm material ở đây
+    farmMaterialEnabled = not farmMaterialEnabled
+    if farmMaterialEnabled then
+        materialButton.Text = "Farm Material: ON"
+        -- Thêm mã cho chức năng farm material ở đây
+    else
+        materialButton.Text = "Toggle Farm Material"
+    end
 end)
-
--- Tiếp tục thêm các nút cho các chức năng khác
--- Như nhiệm vụ, xương, boss, vật phẩm, v.v.
-
--- Lặp lại cho các chức năng khác mà bạn muốn thêm vào menu
