@@ -1,37 +1,96 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-function getNearestEnemy()
-    local nearestEnemy = nil
-    local minDistance = math.huge
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TabFarm = Instance.new("TextButton")
+local TabVolcano = Instance.new("TextButton")
+local UIListLayout = Instance.new("UIListLayout")
 
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+Frame.Size = UDim2.new(0, 300, 0, 400)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.Parent = ScreenGui
+
+TabFarm.Size = UDim2.new(1, 0, 0, 50)
+TabFarm.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+TabFarm.Text = "Farm"
+TabFarm.Parent = Frame
+
+TabVolcano.Size = UDim2.new(1, 0, 0, 50)
+TabVolcano.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+TabVolcano.Text = "Volcano"
+TabVolcano.Position = UDim2.new(0, 0, 0, 50)
+TabVolcano.Parent = Frame
+
+UIListLayout.Parent = Frame
+
+local function getNearestEnemies()
+    local enemies = {}
     for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
         if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-            local distance = (humanoidRootPart.Position - v.HumanoidRootPart.Position).magnitude
-            if distance < minDistance then
-                minDistance = distance
-                nearestEnemy = v
-            end
+            table.insert(enemies, v)
         end
     end
-    return nearestEnemy
+    return enemies
 end
 
-while wait(0.3) do
-    local enemy = getNearestEnemy()
-    
-    if enemy then
-        -- Dịch chuyển đến sát quái
+local function attackEnemies(enemies)
+    for _, enemy in pairs(enemies) do
         humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
         
-        -- Auto đánh thường (click chuột)
+        -- Tự động đánh thường
         game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        
-        -- Auto dùng skill Z (Bức Phá)
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, game)
-        wait(0.1)
-        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, game)
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
+        wait(0.1) -- Thay đổi thời gian nếu cần
     end
 end
+
+local function acceptQuest()
+    local npc = game.Workspace:FindFirstChild("QuestGiverNPC") -- Thay đổi tên NPC
+    if npc then
+        humanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame
+        wait(0.5)
+        fireclickdetector(npc:FindFirstChild("ClickDetector"))
+    end
+end
+
+local function autoFarm()
+    while wait(0.3) do
+        local enemies = getNearestEnemies()
+        
+        if #enemies > 0 then
+            attackEnemies(enemies)
+        else
+            acceptQuest() -- Nhận nhiệm vụ nếu không còn quái
+            wait(2) -- Chờ trước khi kiểm tra lại
+        end
+    end
+end
+
+local function autoVolcano()
+    -- Thêm mã cho tự động tìm đảo tiền sử và tiêu diệt Golem
+    print("Đang vào tab Volcano...")
+    -- Thêm mã cho các chức năng tại đây
+end
+
+local function showTab(tabName)
+    if tabName == "Farm" then
+        print("Đang vào tab Farm...")
+        autoFarm()
+    elseif tabName == "Volcano" then
+        autoVolcano()
+    end
+end
+
+TabFarm.MouseButton1Click:Connect(function()
+    showTab("Farm")
+end)
+
+TabVolcano.MouseButton1Click:Connect(function()
+    showTab("Volcano")
+end)
