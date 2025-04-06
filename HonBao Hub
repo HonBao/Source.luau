@@ -1,11 +1,14 @@
 -- Tạo GUI
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
 local ScreenGui = Instance.new("ScreenGui")
 local HonButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 
 ScreenGui.Name = "HonFarmGUI"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Parent = playerGui
 
 HonButton.Name = "HonButton"
 HonButton.Parent = ScreenGui
@@ -30,7 +33,6 @@ task.spawn(function()
     while true do
         task.wait(0.3)
         if autoFarm then
-            local player = game.Players.LocalPlayer
             local character = player.Character
             if not character then continue end
             local root = character:FindFirstChild("HumanoidRootPart")
@@ -54,6 +56,7 @@ task.spawn(function()
                 root.CFrame = nearestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
 
                 -- Đánh thường (click chuột)
+                game:GetService("VirtualUser"):CaptureController()
                 game:GetService("VirtualUser"):Button1Down(Vector2.new(0, 0))
             end
         end
