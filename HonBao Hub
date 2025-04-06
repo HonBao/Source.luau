@@ -1,85 +1,60 @@
--- GUI
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+-- Giao diện nút "HON"
+local gui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "HonBtnGUI"
+gui.ResetOnSpawn = false
 
-local ScreenGui = Instance.new("ScreenGui", playerGui)
-ScreenGui.Name = "HonFarmGUI"
-ScreenGui.ResetOnSpawn = false
+local btn = Instance.new("TextButton", gui)
+btn.Size = UDim2.new(0, 50, 0, 50)
+btn.Position = UDim2.new(0, 10, 0, 200)
+btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+btn.Text = "HON"
+btn.TextColor3 = Color3.fromRGB(255, 0, 0)
+btn.TextScaled = true
+btn.Font = Enum.Font.SourceSansBold
+btn.AutoButtonColor = false
 
-local HonButton = Instance.new("TextButton", ScreenGui)
-HonButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-HonButton.BorderSizePixel = 0
-HonButton.Position = UDim2.new(0, 10, 0, 200)
-HonButton.Size = UDim2.new(0, 50, 0, 50)
-HonButton.Font = Enum.Font.SourceSansBold
-HonButton.Text = "HON"
-HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-HonButton.TextScaled = true
-HonButton.AutoButtonColor = false
+local corner = Instance.new("UICorner", btn)
+corner.CornerRadius = UDim.new(1, 0)
 
-local UICorner = Instance.new("UICorner", HonButton)
-UICorner.CornerRadius = UDim.new(1, 0)
-
--- Auto Farm Toggle
-local autoFarm = false
-
-HonButton.MouseButton1Click:Connect(function()
-	autoFarm = not autoFarm
-	if autoFarm then
-		HonButton.Text = "ON"
-		HonButton.TextColor3 = Color3.fromRGB(0, 255, 0)
-	else
-		HonButton.Text = "HON"
-		HonButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-	end
+local toggle = false
+btn.MouseButton1Click:Connect(function()
+	toggle = not toggle
+	btn.Text = toggle and "ON" or "HON"
+	btn.TextColor3 = toggle and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 end)
 
--- Đánh thường bằng Melee (gọi combat remote)
-local function attackTarget(target)
-	local Combat = require(game.Players.LocalPlayer.PlayerScripts.CombatFramework)
-	local rigController = Combat.activeController
-	if rigController and rigController.equipped then
-		local blade = rigController.blades[1]
-		if blade then
-			for i = 1, 1 do
-				local args = {
-					[1] = target,
-					[2] = true
-				}
-				rigController.active = true
-				game:GetService("ReplicatedStorage").RigControllerEvent:FireServer(unpack(args))
-			end
-		end
-	end
-end
+-- Auto Farm + Click chuột trái
+local vim = game:GetService("VirtualInputManager")
 
--- Auto Farm Loop
 task.spawn(function()
-	while task.wait(0.3) do
-		if autoFarm then
-			local char = player.Character
-			if not char then continue end
-			local root = char:FindFirstChild("HumanoidRootPart")
-			if not root then continue end
+	while true do
+		task.wait(0.25)
+		if toggle then
+			local plr = game.Players.LocalPlayer
+			local char = plr.Character
+			if not char or not char:FindFirstChild("HumanoidRootPart") then continue end
+			local root = char.HumanoidRootPart
 
 			-- Tìm quái gần nhất
-			local nearestEnemy = nil
-			local minDist = math.huge
-			for _, v in pairs(workspace.Enemies:GetChildren()) do
-				if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-					local dist = (root.Position - v.HumanoidRootPart.Position).Magnitude
-					if dist < minDist then
-						minDist = dist
-						nearestEnemy = v
+			local nearest = nil
+			local mindist = math.huge
+			for _, mob in pairs(workspace.Enemies:GetChildren()) do
+				if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+					local dist = (mob.HumanoidRootPart.Position - root.Position).Magnitude
+					if dist < mindist then
+						mindist = dist
+						nearest = mob
 					end
 				end
 			end
 
-			-- Đến và đánh
-			if nearestEnemy then
+			-- Di chuyển tới quái + đánh
+			if nearest then
 				pcall(function()
-					root.CFrame = nearestEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-					attackTarget(nearestEnemy)
+					root.CFrame = nearest.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+					vim:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+					wait()
+					vim:SendMouseButtonEvent(0, 0, 0, false, game, 0)
 				end)
 			end
 		end
