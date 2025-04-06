@@ -24,7 +24,6 @@ ToggleButton.Text = "HON"
 ToggleButton.Parent = MainFrame
 
 local autoFarmEnabled = false
-local flyingHeight = 20 -- Độ cao bay
 
 -- Hàm tìm quái gần nhất
 local function getNearestEnemies()
@@ -41,7 +40,7 @@ end
 local function attackEnemies()
     local enemies = getNearestEnemies()
     for _, enemy in pairs(enemies) do
-        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, flyingHeight, 2) -- Bay lên cao
+        humanoidRootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2) -- Tiến gần quái
         humanoid:ChangeState(Enum.HumanoidStateType.Jumping) -- Kích hoạt đòn tấn công melee
         wait(0.05) -- Tăng tốc độ tấn công
     end
@@ -50,8 +49,6 @@ end
 -- Hàm tự động farm
 function autoFarm()
     while autoFarmEnabled do
-        -- Giữ nhân vật ở độ cao nhất định
-        humanoidRootPart.Position = humanoidRootPart.Position + Vector3.new(0, flyingHeight, 0)
         attackEnemies()
         wait(0.3)
     end
